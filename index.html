@@ -2,395 +2,205 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Math Game Rasyid</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>Math Quiz</title>
 <style>
-    body {
-        background: #000;
-        color: #fff;
-        margin: 0;
-        padding: 20px;
-        font-family: "Poppins", Arial, sans-serif;
+    body { font-family: Arial; background:#eee; text-align:center; padding:20px; }
+    #container { 
+        width:420px; margin:auto; background:white; padding:20px; 
+        border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2);
     }
-
-    h2, h3 {
-        text-align: center;
-        font-weight: 600;
+    input, button {
+        width:90%; padding:10px; margin-top:10px; border-radius:5px;
+        border:1px solid #ccc; font-size:16px;
     }
-
-    /* Card Style */
-    .card {
-        max-width: 420px;
-        margin: auto;
-        background: #0a0a0a;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0px 0px 18px rgba(255,255,255,0.05);
-    }
-
-    input, select {
-        width: 100%;
-        padding: 12px;
-        border-radius: 10px;
-        border: none;
-        margin-top: 10px;
-        background: #111;
-        color: #fff;
-        font-size: 16px;
-        outline: none;
-    }
-
-    button {
-        width: 100%;
-        padding: 14px;
-        border: none;
-        border-radius: 10px;
-        margin-top: 10px;
-        font-size: 17px;
-        background: #222;
-        color: white;
-        transition: 0.2s;
-    }
-
-    button:hover {
-        background: #333;
-        transform: scale(1.02);
-    }
-
-    /* Options */
-    .option {
-        padding: 14px;
-        background: #111;
-        border-radius: 10px;
-        margin: 8px 0;
-        text-align: center;
-        border: 1px solid #222;
-        transition: 0.15s;
-    }
-
-    .option:hover {
-        transform: scale(1.02);
-        background: #1a1a1a;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .timer {
-        text-align: center;
-        font-size: 19px;
-        margin-bottom: 10px;
-        font-weight: 600;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        color: #fff;
-        margin-top: 15px;
-    }
-
-    th, td {
-        padding: 10px;
-        border-bottom: 1px solid #222;
-        text-align: center;
-    }
-
+    button { background:black; color:white; cursor:pointer; font-weight:bold; }
+    .leaderboard-box { margin-top:20px; padding:10px; background:#f1f1f1; border-radius:8px; text-align:left; }
 </style>
 </head>
 
 <body>
 
-<!-- MENU -->
-<div class="card" id="menu">
-    <h2>Matematika Game</h2>
+<div id="container">
 
-    <input id="username" placeholder="Masukkan Username">
+<h2>Math Quiz</h2>
 
-    <h3>Pilih Mode</h3>
-    <button onclick="startLearning()">Latihan</button>
-    <button onclick="startCompetition()">Kompetisi</button>
-
-    <h3>Leaderboard</h3>
-    <select id="leaderLevel" onchange="showLeaderboard()">
-        <option value="1">Level 1</option>
-        <option value="2">Level 2</option>
-        <option value="3">Level 3</option>
-    </select>
-    <button onclick="openLeaderboard()">Lihat Leaderboard</button>
+<!-- LOGIN -->
+<div id="loginSection">
+    <h3>Masukkan Username</h3>
+    <input type="text" id="username" placeholder="contoh: rasyid123">
+    <button onclick="login()">Mulai</button>
 </div>
 
-<!-- ========================= -->
 <!-- GAME -->
-<!-- ========================= -->
-<div class="card hidden" id="game">
-    <h3 id="modeTitle"></h3>
-    <div class="timer" id="timer"></div>
-    <h3 id="question"></h3>
-    <div id="options"></div>
+<div id="gameSection" style="display:none;">
+    <h3 id="welcome"></h3>
+    <p>Skor: <span id="score">0</span></p>
+    <p>Soal ke: <span id="questionNumber">1</span> / 10</p>
+
+    <h2 id="timer">10</h2>
+
+    <h3 id="questionDisplay"></h3>
+    <input type="number" id="answer" placeholder="Jawaban kamu">
+    <button onclick="submitAnswer()">Jawab</button>
+
+    <p id="feedback"></p>
+
+    <button onclick="logout()" style="background:#d9534f;">Logout</button>
+
+    <div class="leaderboard-box">
+        <h3>Leaderboard (Top 5)</h3>
+        <ol id="leaderboardList"></ol>
+    </div>
 </div>
 
-<!-- ========================= -->
-<!-- LEADERBOARD -->
-<!-- ========================= -->
-<div class="card hidden" id="leaderboard">
-    <h3>Leaderboard</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Nama</th>
-                <th>Skor</th>
-                <th>Waktu</th>
-            </tr>
-        </thead>
-        <tbody id="leaderBody"></tbody>
-    </table>
-
-    <button onclick="backToMenu()">Kembali</button>
 </div>
 
-
-<!-- ========================= -->
-<!-- JAVASCRIPT -->
-<!-- ========================= -->
 <script>
-
-// =========================
-// SOAL LEVEL 1
-// =========================
-const level1 = [
- {q:"12 + 7 =",options:["17","18","19","20"],answer:"19"},
- {q:"25 - 9 =",options:["14","15","16","17"],answer:"16"},
- {q:"8 × 6 =",options:["42","46","48","50"],answer:"48"},
- {q:"56 ÷ 8 =",options:["5","6","7","8"],answer:"7"},
- {q:"14 + 19 =",options:["31","32","33","34"],answer:"33"},
- {q:"40 - 27 =",options:["11","12","13","14"],answer:"13"},
- {q:"9 × 7 =",options:["56","63","72","77"],answer:"63"},
- {q:"72 ÷ 9 =",options:["6","7","8","9"],answer:"8"},
- {q:"18 + 24 =",options:["40","41","42","43"],answer:"42"},
- {q:"50 - 18 =",options:["30","31","32","33"],answer:"32"},
- {q:"11 × 5 =",options:["45","50","55","60"],answer:"55"},
- {q:"81 ÷ 9 =",options:["7","8","9","10"],answer:"9"},
- {q:"6 × 9 =",options:["52","54","56","58"],answer:"54"},
- {q:"45 ÷ 5 =",options:["7","8","9","10"],answer:"9"},
- {q:"33 + 12 =",options:["43","44","45","46"],answer:"45"},
- {q:"70 - 28 =",options:["38","40","42","44"],answer:"42"},
- {q:"4 × 12 =",options:["44","46","48","50"],answer:"48"},
- {q:"64 ÷ 4 =",options:["14","15","16","18"],answer:"16"},
- {q:"90 - 45 =",options:["40","45","50","55"],answer:"45"},
- {q:"27 + 15 =",options:["40","41","42","43"],answer:"42"}
-];
-
-
-// SOAL LEVEL 2
-const level2 = [];
-for (let i=0;i<20;i++){
-    let a = Math.floor(Math.random()*50)+30;
-    let b = Math.floor(Math.random()*50)+10;
-    let ops = ["+","-","×","÷"];
-    let op = ops[Math.floor(Math.random()*4)];
-
-    let ans;
-    if(op==="+") ans = a+b;
-    if(op==="-") ans = a-b;
-    if(op==="×") ans = a*b;
-    if(op==="÷") { b = [2,3,4,5,6,10][Math.floor(Math.random()*6)]; ans = Math.floor(a/b); }
-
-    let wrong1 = ans+3;
-    let wrong2 = ans-2;
-    let wrong3 = ans+5;
-
-    level2.push({
-        q: `${a} ${op} ${b} =`,
-        options:[ans.toString(), wrong1.toString(), wrong2.toString(), wrong3.toString()],
-        answer: ans.toString()
-    });
-}
-
-
-// SOAL LEVEL 3
-const level3 = [];
-for (let i=0;i<20;i++){
-    let a = Math.floor(Math.random()*100)+50;
-    let b = Math.floor(Math.random()*40)+10;
-    let ops = ["+","-","×","÷"];
-    let op = ops[Math.floor(Math.random()*4)];
-
-    let ans;
-    if(op==="+") ans = a+b;
-    if(op==="-") ans = a-b;
-    if(op==="×") ans = a*b;
-    if(op==="÷") { b = [3,4,5,6,8,10][Math.floor(Math.random()*6)]; ans = Math.floor(a/b); }
-
-    level3.push({
-        q:`${a} ${op} ${b} =`,
-        options:[ans.toString(), (ans+4).toString(), (ans-3).toString(), (ans+7).toString()],
-        answer: ans.toString()
-    });
-}
-
-
-// VARIABEL GAME
-let questions = [];
-let mode = "";
-let level = 1;
-let index = 0;
-let score = 0;
-let timeSpent = 0;
+let soalKe = 1;
+let correctAnswer = 0;
 let timer;
-let perQuestionTime = 10;
+let timeLeft = 10;
 
+// LOGIN
+function login() {
+    let username = document.getElementById("username").value;
+    if (username.trim() === "") { alert("Username wajib!"); return; }
 
-// MULAI MODE LATIHAN
-function startLearning(){
-    mode = "learn";
-    level = 1;
-    questions = level1;
-    index = 0;
-    score = 0;
-    timeSpent = 0;
+    if (!localStorage.getItem(username)) {
+        localStorage.setItem(username, JSON.stringify({ username: username, score: 0 }));
+    }
 
-    document.getElementById("menu").classList.add("hidden");
-    document.getElementById("game").classList.remove("hidden");
-
-    document.getElementById("modeTitle").innerHTML = "Mode Belajar (Tanpa Timer)";
-    document.getElementById("timer").innerHTML = "";
-
-    showQuestion();
+    localStorage.setItem("currentUser", username);
+    startGame();
 }
 
+// MULAI GAME
+function startGame() {
+    let user = localStorage.getItem("currentUser");
+    let data = JSON.parse(localStorage.getItem(user));
 
-// MULAI MODE KOMPETISI
-function startCompetition(){
-    const user = document.getElementById("username").value;
-    if(user.trim()===""){ alert("Masukkan username!"); return; }
+    document.getElementById("welcome").innerHTML = "Hai, " + data.username + "!";
+    document.getElementById("score").innerHTML = data.score;
 
-    mode = "competition";
-    level = 1;
-    questions = level1;
-    index = 0;
-    score = 0;
-    timeSpent = 0;
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("gameSection").style.display = "block";
 
-    document.getElementById("menu").classList.add("hidden");
-    document.getElementById("game").classList.remove("hidden");
-
-    document.getElementById("modeTitle").innerHTML = "Kompetisi - Level 1";
-
+    loadLeaderboard();
+    generateQuestion();
     startTimer();
-    showQuestion();
 }
 
+// TIMER 10 DETIK 
+function startTimer() {
+    timeLeft = 10;
+    document.getElementById("timer").innerHTML = timeLeft;
 
-// TAMPILKAN SOAL
-function showQuestion(){
-    const q = questions[index];
-    document.getElementById("question").innerHTML = q.q;
-
-    let html = "";
-    q.options.forEach(opt=>{
-        html += `<div class="option" onclick="answer('${opt}')">${opt}</div>`;
-    });
-
-    document.getElementById("options").innerHTML = html;
-}
-
-// TIMER
-function startTimer(){
-    let timeLeft = perQuestionTime;
-    document.getElementById("timer").innerHTML = "Waktu: "+timeLeft+" dtk";
-
-    timer = setInterval(()=>{
+    timer = setInterval(function() {
         timeLeft--;
-        timeSpent++;
-        document.getElementById("timer").innerHTML = "Waktu: "+timeLeft+" dtk";
+        document.getElementById("timer").innerHTML = timeLeft;
 
-        if(timeLeft<=0){
+        if (timeLeft <= 0) {
             clearInterval(timer);
-            nextQuestion();
+            nextQuestion(); // waktu habis → ke soal berikutnya
         }
-    },1000);
+    }, 1000);
 }
 
+// GENERATE SOAL
+function generateQuestion() {
+    let a = Math.floor(Math.random() * 20) + 1;
+    let b = Math.floor(Math.random() * 20) + 1;
+    let ops = ["+", "-", "×"];
+    let op = ops[Math.floor(Math.random() * ops.length)];
 
-// JAWAB
-function answer(opt){
-    if(opt === questions[index].answer) score++;
-    nextQuestion();
+    if (op === "+") correctAnswer = a + b;
+    if (op === "-") correctAnswer = a - b;
+    if (op === "×") correctAnswer = a * b;
+
+    document.getElementById("questionDisplay").innerHTML = `${a} ${op} ${b}`;
+    document.getElementById("answer").value = "";
+    document.getElementById("feedback").innerHTML = "";
 }
 
-
-// SOAL SELANJUTNYA
-function nextQuestion(){
+// PROSES JAWABAN
+function submitAnswer() {
     clearInterval(timer);
-    index++;
 
-    if(index >= questions.length){
+    let user = localStorage.getItem("currentUser");
+    let data = JSON.parse(localStorage.getItem(user));
+    let answer = parseInt(document.getElementById("answer").value);
+
+    if (!isNaN(answer) && answer === correctAnswer) {
+        data.score++;
+        document.getElementById("feedback").innerHTML = "Benar!";
+    } else {
+        document.getElementById("feedback").innerHTML = "Salah!";
+    }
+
+    localStorage.setItem(user, JSON.stringify(data));
+    document.getElementById("score").innerHTML = data.score;
+
+    setTimeout(nextQuestion, 500);
+}
+
+// SOAL BERIKUTNYA
+function nextQuestion() {
+    soalKe++;
+
+    if (soalKe > 10) {
         finishGame();
         return;
     }
 
-    if(mode==="competition") startTimer();
-    showQuestion();
+    document.getElementById("questionNumber").innerHTML = soalKe;
+    generateQuestion();
+    startTimer();
 }
-
 
 // SELESAI
-function finishGame(){
-    saveScore();
-    alert(`Selesai!\nSkor: ${score}\nWaktu: ${timeSpent} detik`);
-    backToMenu();
+function finishGame() {
+    let user = localStorage.getItem("currentUser");
+    let data = JSON.parse(localStorage.getItem(user));
+    alert("Game selesai! Skor kamu: " + data.score);
+
+    updateLeaderboard();
+    loadLeaderboard();
 }
-
-
-// SIMPAN LEADERBOARD
-function saveScore(){
-    if(mode!=="competition") return;
-
-    const user = document.getElementById("username").value;
-    const key = "leader_level_"+level;
-
-    let data = JSON.parse(localStorage.getItem(key) || "[]");
-
-    data.push({name:user, score:score, time:timeSpent});
-    localStorage.setItem(key, JSON.stringify(data));
-}
-
 
 // LEADERBOARD
-function openLeaderboard(){
-    document.getElementById("menu").classList.add("hidden");
-    document.getElementById("leaderboard").classList.remove("hidden");
-    showLeaderboard();
+function updateLeaderboard() {
+    let leaderboard = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key === "currentUser") continue;
+
+        let data = JSON.parse(localStorage.getItem(key));
+        leaderboard.push({ username: data.username, score: data.score });
+    }
+
+    leaderboard.sort((a, b) => b.score - a.score);
+
+    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
 }
 
-function showLeaderboard(){
-    const lvl = document.getElementById("leaderLevel").value;
-    const key = "leader_level_"+lvl;
+function loadLeaderboard() {
+    let board = JSON.parse(localStorage.getItem("leaderboard")) || [];
+    let list = document.getElementById("leaderboardList");
+    list.innerHTML = "";
 
-    let data = JSON.parse(localStorage.getItem(key) || "[]");
-    data.sort((a,b)=> b.score - a.score);
-
-    let html = "";
-    data.forEach(row=>{
-        html += `<tr><td>${row.name}</td><td>${row.score}</td><td>${row.time} dtk</td></tr>`;
-    });
-
-    document.getElementById("leaderBody").innerHTML = html;
+    for (let i = 0; i < Math.min(5, board.length); i++) {
+        let li = document.createElement("li");
+        li.textContent = `${board[i].username} — ${board[i].score}`;
+        list.appendChild(li);
+    }
 }
 
-
-// KEMBALI KE MENU
-function backToMenu(){
-    document.getElementById("leaderboard").classList.add("hidden");
-    document.getElementById("game").classList.add("hidden");
-    document.getElementById("menu").classList.remove("hidden");
+// Untuk LOGOUT
+function logout() {
+    localStorage.removeItem("currentUser");
+    location.reload();
 }
-
 </script>
-
 </body>
-    </html>
+</html>
