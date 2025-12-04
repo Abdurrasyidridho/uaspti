@@ -116,25 +116,20 @@
     <h3>Leaderboard</h3>
     <select id="leaderLevel" onchange="showLeaderboard()">
         <option value="1">Level 1</option>
-        <option value="2">Level 2</option>
-        <option value="3">Level 3</option>
     </select>
     <button onclick="openLeaderboard()">Lihat Leaderboard</button>
 </div>
 
-<!-- ========================= -->
 <!-- GAME -->
-<!-- ========================= -->
 <div class="card hidden" id="game">
     <h3 id="modeTitle"></h3>
     <div class="timer" id="timer"></div>
     <h3 id="question"></h3>
     <div id="options"></div>
 </div>
+    
+<!--LEADERBOARD -->
 
-<!-- ========================= -->
-<!-- LEADERBOARD -->
-<!-- ========================= -->
 <div class="card hidden" id="leaderboard">
     <h3>Leaderboard</h3>
 
@@ -158,7 +153,7 @@
 <!-- ========================= -->
 <script>
 
-// =========================
+
 // SOAL LEVEL 1
 // =========================
 const level1 = [
@@ -185,7 +180,7 @@ const level1 = [
 ];
 
 
-// SOAL LEVEL 2
+// SOAL LEVEL 2 MASIH UJI COBA 
 const level2 = [];
 for (let i=0;i<20;i++){
     let a = Math.floor(Math.random()*50)+30;
@@ -211,7 +206,7 @@ for (let i=0;i<20;i++){
 }
 
 
-// SOAL LEVEL 3
+// SOAL LEVEL 3 MASIH UJI COBA
 const level3 = [];
 for (let i=0;i<20;i++){
     let a = Math.floor(Math.random()*100)+50;
