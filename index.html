@@ -1,1 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Math Quiz</title>
+<style>
+    body { font-family: Arial; background:#eee; text-align:center; padding:20px; }
+    #container { 
+        width:420px; margin:auto; background:white; padding:20px; 
+        border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2);
+    }
+    input, button {
+        width:90%; padding:10px; margin-top:10px; border-radius:5px;
+        border:1px solid #ccc; font-size:16px;
+    }
+    button { background:black; color:white; cursor:pointer; font-weight:bold; }
+    .leaderboard-box { margin-top:20px; padding:10px; background:#f1f1f1; border-radius:8px; text-align:left; }
+</style>
+</head>
 
+<body>
+
+<div id="container">
+
+<h2>Math Quiz</h2>
+
+<!-- LOGIN -->
+<div id="loginSection">
+    <h3>Masukkan Username</h3>
+    <input type="text" id="username" placeholder="contoh: rasyid123">
+    <button onclick="login()">Mulai</button>
+</div>
+
+<!-- GAME -->
+<div id="gameSection" style="display:none;">
+    <h3 id="welcome"></h3>
+    <p>Skor: <span id="score">0</span></p>
+    <p>Soal ke: <span id="questionNumber">1</span> / 10</p>
+
+    <h2 id="timer">10</h2>
+
+    <h3 id="questionDisplay"></h3>
+    <input type="number" id="answer" placeholder="Jawaban kamu">
+    <button onclick="submitAnswer()">Jawab</button>
+
+    <p id="feedback"></p>
+
+    <button onclick="logout()" style="background:#d9534f;">Logout</button>
+
+    <div class="leaderboard-box">
+        <h3>Leaderboard (Top 5)</h3>
+        <ol id="leaderboardList"></ol>
+    </div>
+</div>
+
+</div>
+
+<script>
+let soalKe = 1;
+let correctAnswer = 0;
+let timer;
+let timeLeft = 10;
+
+// LOGIN
+function login() {
+    let username = document.getElementById("username").value;
+    if (username.trim() === "") { alert("Username wajib!"); return; }
+
+    if (!localStorage.getItem(username)) {
+        localStorage.setItem(username, JSON.stringify({ username: username, score: 0 }));
+    }
+
+    localStorage.setItem("currentUser", username);
+    startGame();
+}
+
+// MULAI GAME
+function startGame() {
+    let user = localStorage.getItem("currentUser");
+    let data = JSON.parse(localStorage.getItem(user));
+
+    document.getElementById("welcome").innerHTML = "Hai, " + data.username + "!";
+    document.getElementById("score").innerHTML = data.score;
+
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("gameSection").style.display = "block";
+
+    loadLeaderboard();
+    generateQuestion();
+    startTimer();
+}
+
+// TIMER 10 DETIK 
+function startTimer() {
+    timeLeft = 10;
+    document.getElementById("timer").innerHTML = timeLeft;
+
+    timer = setInterval(function() {
+        timeLeft--;
+        document.getElementById("timer").innerHTML = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            nextQuestion(); // waktu habis → ke soal berikutnya
+        }
+    }, 1000);
+}
+
+// GENERATE SOAL
+function generateQuestion() {
+    let a = Math.floor(Math.random() * 20) + 1;
+    let b = Math.floor(Math.random() * 20) + 1;
+    let ops = ["+", "-", "×"];
+    let op = ops[Math.floor(Math.random() * ops.length)];
+
+    if (op === "+") correctAnswer = a + b;
+    if (op === "-") correctAnswer = a - b;
+    if (op === "×") correctAnswer = a * b;
+
+    document.getElementById("questionDisplay").innerHTML = `${a} ${op} ${b}`;
+    document.getElementById("answer").value = "";
+    document.getElementById("feedback").innerHTML = "";
+}
+
+// PROSES JAWABAN
+function submitAnswer() {
+    clearInterval(timer);
+
+    let user = localStorage.getItem("currentUser");
+    let data = JSON.parse(localStorage.getItem(user));
+    let answer = parseInt(document.getElementById("answer").value);
+
+    if (!isNaN(answer) && answer === correctAnswer) {
+        data.score++;
+        document.getElementById("feedback").innerHTML = "Benar!";
+    } else {
+        document.getElementById("feedback").innerHTML = "Salah!";
+    }
+
+    localStorage.setItem(user, JSON.stringify(data));
+    document.getElementById("score").innerHTML = data.score;
+
+    setTimeout(nextQuestion, 500);
+}
+
+// SOAL BERIKUTNYA
+function nextQuestion() {
+    soalKe++;
+
+    if (soalKe > 10) {
+        finishGame();
+        return;
+    }
+
+    document.getElementById("questionNumber").innerHTML = soalKe;
+    generateQuestion();
+    startTimer();
+}
+
+// SELESAI
+function finishGame() {
+    let user = localStorage.getItem("currentUser");
+    let data = JSON.parse(localStorage.getItem(user));
+    alert("Game selesai! Skor kamu: " + data.score);
+
+    updateLeaderboard();
+    loadLeaderboard();
+}
+
+// LEADERBOARD
+function updateLeaderboard() {
+    let leaderboard = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key === "currentUser") continue;
+
+        let data = JSON.parse(localStorage.getItem(key));
+        leaderboard.push({ username: data.username, score: data.score });
+    }
+
+    leaderboard.sort((a, b) => b.score - a.score);
+
+    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+}
+
+function loadLeaderboard() {
+    let board = JSON.parse(localStorage.getItem("leaderboard")) || [];
+    let list = document.getElementById("leaderboardList");
+    list.innerHTML = "";
+
+    for (let i = 0; i < Math.min(5, board.length); i++) {
+        let li = document.createElement("li");
+        li.textContent = `${board[i].username} — ${board[i].score}`;
+        list.appendChild(li);
+    }
+}
+
+// Untuk LOGOUT
+function logout() {
+    localStorage.removeItem("currentUser");
+    location.reload();
+}
+</script>
+</body>
+  </html>
